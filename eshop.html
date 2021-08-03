@@ -1,0 +1,63 @@
+<?php
+	$al = new Adminlogin();
+	if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+		$adminEmail = $_POST['admin_email'];
+		$adminPass = md5($_POST['admin_pass']);
+
+		$loginChk = $al->adminLogin($adminEmail, $adminPass);
+	}
+?>
+
+<?php
+	/**
+	 * Adminlogin class
+	 */
+	//Create Object
+	class Adminlogin{
+		private $db;  //Property
+		private $fm;  //Property
+
+		public function __construct(){
+			$this->db = new Database();
+			$this->fm = new Format();  
+		}
+
+		//Step-1:Create AdminLogin Method for adminlogin Page
+		public function adminLogin($adminEmail, $adminPass){
+			//Validdation Data
+			$adminEmail = $this->fm->validation($adminEmail);
+			$adminPass = $this->fm->validation($adminPass);
+
+			$adminUser = mysqli_real_escape_string($this->db->link, $adminEmail);
+			$adminPass = mysqli_real_escape_string($this->db->link, $adminPass);
+
+			if (empty($adminUser) || empty($adminPass)) {
+				$msg = "Username and Password must not be empty !";
+				return $msg;
+			}else{
+				$query = "SELECT * FROM admin_login WHERE admin_email = '$adminEmail' AND admin_pass='$adminPass'";
+				$result = $this->db->select($query);
+				if ($result != false) {
+					$value = $result->fetch_assoc();
+					Session::set("adminlogin", true);
+					Session::set("admin_id", $value['admin_id']);
+					Session::set("admin_name", $value['admin_name']);
+					Session::set("admin_user", $value['admin_user']);
+					Session::set("admin_email", $value['admin_email']);
+					header("Location: dashboard.php");
+				}else{
+					$msg = "Username and Password Not Match !";
+					return $msg;
+				}
+			}
+		}
+
+
+
+
+
+
+
+
+	}
+?>
